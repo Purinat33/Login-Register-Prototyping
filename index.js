@@ -2,7 +2,7 @@ require('dotenv').config();
 const exp = require('constants');
 const express = require('express');
 const app = express();
-const sql = require('mysql2');
+// const sql = require('mysql2');
 const port = 3000;
 const bcrypt = require('bcrypt');
 const ejs = require('ejs')
