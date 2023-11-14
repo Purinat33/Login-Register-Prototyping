@@ -85,6 +85,12 @@ app.use(express.json());
 // EJS can be used to render "HTML" styled page in real time (catalogue etc.)
 app.set('view engine', 'ejs');
 
+//Error route
+app.get('/error', (req, res) => {
+    const {message} = req.query
+    res.status(500).render('error', {message}); // Render your error.ejs file
+});
+
 // Actual web page serving/functionality
 // Actual Home Page can change in production
 app.use('/', public_routes)
