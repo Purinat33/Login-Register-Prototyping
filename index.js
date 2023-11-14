@@ -6,6 +6,9 @@ const bcrypt = require('bcrypt');
 const ejs = require('ejs')
 const morgan = require('morgan')
 
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+
 //Routes
 const public_routes = require('./routes/routes')
 const user_routes = require('./routes/users')
@@ -14,61 +17,76 @@ const staff_routes = require('./routes/employee')
 //Database
 const {db} = require('./model/db')
 
-//Is elden.ring the username exists? if not add it
-staffUsername = 'elden.ring';
-staffPassword = 'rosebud';
+// Check if elden.ring exists in employee_record, add if not
+const staffUsername = 'elden.ring';
+const staffPassword = 'rosebud';
 
-// Check if the username already exists in the user_record table
-db.get('SELECT 1 FROM user_record WHERE user_username = ?', [staffUsername], (err, userRow) => {
+db.get('SELECT 1 FROM employee_record WHERE staff_username = ?', [staffUsername], (err, row) => {
     if (err) {
-        console.error('Error checking if username exists in user_record:', err);
-        // db.close();
+        console.error('Error checking if username exists in employee_record:', err);
         return;
     }
 
-    if (!userRow) {
-        // Username does not exist in user_record, proceed to check in employee_record
-        db.get('SELECT 1 FROM employee_record WHERE staff_username = ?', [staffUsername], (staffErr, staffRow) => {
-            if (staffErr) {
-                console.error('Error checking if username exists in employee_record:', staffErr);
-                // db.close();
+    if (!row) {
+        // elden.ring does not exist in employee_record, add it
+        bcrypt.hash(staffPassword, 10, (hashErr, hashedPassword) => {
+            if (hashErr) {
+                console.error('Error hashing password:', hashErr);
                 return;
             }
 
-            if (!staffRow) {
-                // Username does not exist in employee_record, proceed to add a new staff member
-                bcrypt.hash(staffPassword, 10, (hashErr, hashedPassword) => {
-                    if (hashErr) {
-                        console.error('Error hashing password:', hashErr);
-                        // db.close();
-                        return;
+            db.run('INSERT INTO employee_record (staff_username, staff_password) VALUES (?, ?)',
+                [staffUsername, hashedPassword], (insertErr) => {
+                    if (insertErr) {
+                        console.error('Error inserting elden.ring into employee_record:', insertErr);
+                    } else {
+                        console.log('elden.ring added to employee_record.');
                     }
-
-                    // Insert the new staff member into the employee_record table
-                    db.run('INSERT INTO employee_record (staff_username, staff_password) VALUES (?, ?)',
-                        [staffUsername, hashedPassword], (insertErr) => {
-                            if (insertErr) {
-                                console.error('Error inserting staff member:', insertErr);
-                            } else {
-                                console.log('Staff member added successfully.');
-                            }
-
-                            // Close the database connection after all operations are done
-                            // db.close();
-                        });
                 });
-            } else {
-                // Username already exists in employee_record
-                console.log('Username already exists in employee_record.');
-                // db.close();
-            }
         });
     } else {
-        // Username already exists in user_record
-        console.log('Username already exists in user_record.');
-        // db.close();
+        console.log('elden.ring already exists in employee_record.');
     }
 });
+
+// Check if horselover1862 exists in user_record, add if not
+const userUsername = 'horselover1862';
+const userPassword = 'gyoubu';
+const userFirstName = 'Gyoubu'; // Not required for login but required for registration
+const userLastName = 'Oniwa';
+const userAddress = 'Ashina Castle, Japan';
+const userPhone = '911';
+const userMembershipLevel = 'guest';
+
+
+db.get('SELECT 1 FROM user_record WHERE user_username = ?', [userUsername], (err, row) => {
+    if (err) {
+        console.error('Error checking if username exists in user_record:', err);
+        return;
+    }
+
+    if (!row) {
+        // horselover1862 does not exist in user_record, add it
+        bcrypt.hash(userPassword, 10, (hashErr, hashedPassword) => {
+            if (hashErr) {
+                console.error('Error hashing password:', hashErr);
+                return;
+            }
+
+            db.run('INSERT INTO user_record (firstname, lastname, address, phone, user_username, user_password, membership_level) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [userFirstName, userLastName, userAddress, userPhone ,userUsername, hashedPassword, userMembershipLevel], (insertErr) => {
+                    if (insertErr) {
+                        console.error('Error inserting horselover1862 into user_record:', insertErr);
+                    } else {
+                        console.log('horselover1862 added to user_record.');
+                    }
+                });
+        });
+    } else {
+        console.log('horselover1862 already exists in user_record.');
+    }
+});
+
 
 // For html <form> to work
 app.use(express.urlencoded({ extended: true }))
@@ -81,6 +99,14 @@ app.use(express.static('public'));
 
 //Parse JSON request
 app.use(express.json());
+
+//Cookie for authentication
+app.use(cookieParser());
+app.use(session({
+    secret: 'your_secret_key',
+    resave: true,
+    saveUninitialized: true
+}));
 
 // EJS can be used to render "HTML" styled page in real time (catalogue etc.)
 app.set('view engine', 'ejs');

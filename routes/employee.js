@@ -1,8 +1,13 @@
 // Employee routes stuff
 const express = require('express')
 const router = express.Router()
-const {check_staff_status} = require('./../controller/auth')
+const {isLoggedIn, isStaff} = require('./../controller/auth')
 
-router.get('/manage', check_staff_status)
+function displayPage(req,res,next){
+    const username = req.session.username;
+    res.status(200).render('employee_page', {username: username})
+}
+
+router.get('/manage', isLoggedIn, isStaff, displayPage)
 
 module.exports = router

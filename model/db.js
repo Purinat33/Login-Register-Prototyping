@@ -41,29 +41,6 @@ if (process.env.DEV === 'false'){
 
     // Create tables for user and staff
     db.serialize(() => {
-
-        db.run(`DROP TRIGGER IF EXISTS enforce_unique_username`);
-        db.run(`DROP TRIGGER IF EXISTS enforce_unique_username_user`);
-
-        // Create triggers to enforce unique usernames across both tables
-        db.run(`
-            CREATE TRIGGER enforce_unique_username
-            BEFORE INSERT ON employee_record
-            WHEN EXISTS (SELECT 1 FROM user_record WHERE user_username = NEW.staff_username)
-            BEGIN
-                SELECT RAISE(ABORT, 'Username already exists in user_record');
-            END;
-        `);
-
-        db.run(`
-            CREATE TRIGGER enforce_unique_username_user
-            BEFORE INSERT ON user_record
-            WHEN EXISTS (SELECT 1 FROM employee_record WHERE staff_username = NEW.user_username)
-            BEGIN
-                SELECT RAISE(ABORT, 'Username already exists in employee_record');
-            END;
-        `);
-        
         db.run(`
             CREATE TABLE IF NOT EXISTS user_record (
                 user_id INTEGER PRIMARY KEY,

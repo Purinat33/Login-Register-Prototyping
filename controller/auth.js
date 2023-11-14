@@ -29,10 +29,18 @@ function login_user(req, res, next) {
                     if (bcryptResult) {
                         // Passwords match, login successful
                         // return res.status(200).json({ message: 'Login successful' });
-                        if (loginType === 'regularUser')
+                        req.session.isLoggedIn = true;
+                        req.session.username = username;
+                        
+                        if (loginType === 'regularUser'){
+                            req.session.isStaff = false;
                             return res.status(200).redirect('/user/dashboard');
-                        else
+                        }
+                        else{
+                            req.session.isStaff = true;
                             return res.status(200).redirect('/restricted/manage');
+                        }
+                            
                     } else {
                         // Passwords do not match
                         // return res.status(401).json({ message: 'Invalid credentials' });
@@ -64,7 +72,7 @@ function register_user(req, res,next){
     db.get('SELECT 1 FROM user_record WHERE user_username = ?', [user_username], (err, userRow) => {
         if (err) {
             console.error('Error checking if username exists in user_record:', err);
-            return res.status(500).json({ message: 'Internal server error' });
+            return res.status(500).redirect('/error?message=' + encodeURIComponent('Internal Server Error'));
         }
 
         if (!userRow) {
@@ -72,7 +80,7 @@ function register_user(req, res,next){
             bcrypt.hash(user_password, 10, (hashErr, hashedPassword) => {
                 if (hashErr) {
                     console.error('Error hashing password:', hashErr);
-                    return res.status(500).json({ message: 'Internal server error' });
+                    return res.status(500).redirect('/error?message=' + encodeURIComponent('Internal Server Error'));
                 }
 
                 // Insert the new user into the user_record table
@@ -80,27 +88,41 @@ function register_user(req, res,next){
                     [firstname, lastname, address, phone, user_username, hashedPassword, 'guest'], (insertErr) => {
                         if (insertErr) {
                             console.error('Error inserting user:', insertErr);
-                            return res.status(500).json({ message: 'Internal server error' });
+                            return res.status(500).redirect('/error?message=' + encodeURIComponent('Internal Server Error'));
                         } else {
                             console.log('User registered successfully.');
-                            return res.status(200).json({ message: 'Registration successful' });
+                            return res.status(200).redirect('/login');
                         }
                     });
             });
         } else {
             // Username already exists in user_record
-            return res.status(400).json({ message: 'Username already exists' });
+            return res.status(400).redirect('/error?message=' + encodeURIComponent('Username Already Exists'));
         }
     });
 }
 
-function check_staff_status(req,res,next){
-    // Check if staff is the one logged in
-
-}
 
 function isLoggedIn(req, res, next){
     // Check if we're logged in (Cookie?)
+    if (req.session.isLoggedIn){
+        next()
+    }
+    else{
+        res.status(401).redirect('/login')
+    }
 }
 
-module.exports = {login_user, register_user, check_staff_status, isLoggedIn}
+
+function isStaff(req,res,next){
+    // Check if staff is the one logged in
+    if (req.session.isStaff){
+        next()
+    }
+    else{
+        res.status(401).redirect('/login')
+    }
+}
+
+
+module.exports = {login_user, register_user, isLoggedIn, isStaff}
