@@ -9,6 +9,38 @@ const morgan = require('morgan')
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 
+//For backup and redundancy check
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const databaseFilePath = path.resolve(process.env.SQLITE_DB || './database.sqlite');
+const backupFolder1 = path.resolve('./backup_1'); 
+const backupFolder2 = path.resolve('./backup_2');
+
+process.on('SIGINT', () => {
+    console.log('\nReceived SIGINT. Creating backups...');
+
+    const timestamp = Date.now(); // You might want to add a timestamp to the backup file names
+    const backupFileName = `backup_${timestamp}.sqlite`;
+
+    try {
+        // Copy the database file to backup folders
+        fs.copyFileSync(databaseFilePath, path.join(backupFolder1, backupFileName));
+        fs.copyFileSync(databaseFilePath, path.join(backupFolder2, backupFileName));
+
+        console.log('Backups created successfully.');
+    } catch (error) {
+        console.error('Error creating backups:', error);
+    } finally {
+        process.exit(); // Exit the process after creating backups
+    }
+    // You can see files in backup_1 and backup_2 but we only committed 1st one of each 
+    // Since the repo might be too bloated otherwise
+    // Because we backup every time we CTRL-C so...
+});
+
+
 //Routes
 const public_routes = require('./routes/routes')
 const user_routes = require('./routes/users')
