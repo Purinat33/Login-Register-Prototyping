@@ -9,9 +9,11 @@ These functions are built for **Co-Working Space Software Engineering Project**
 * Do not forget to create a file named `.env` at the **root** of the repository. The required contents are as followed:
 ```
 DEV=true
-SQLITE_DB=./model/database.db
+SQLITE_DB=./model/database.sqlite
 ```
 *Note*: We have `.env` in place because of MySQL connection strings, these are used only during productions only.
+
+* Run `npm install`
 
 * Run `git pull origin master` at the **root** of the repository in your command-line just in case if the repository got updated.
 
