@@ -1,102 +1,81 @@
 const sql = require('mysql2') // MySQL might be needed in production as it can handle large scale and stuff
 const sqlite3 = require('sqlite3').verbose() // Though SQLite is smaller and self-contained, easy for testing
 require('dotenv').config()
+const path = require('path')
 
-let user_db, staff_db;
+let db;
 
 if (process.env.DEV === 'false'){
     //MySQL Connection (Use in production or when DEV = false)
-    //Connecting to the database 
-    //Connecting to the database (User)
-    user_db = sql.createPool({
+    db = sql.createPool({
         host: process.env.DB_HOST,
-        user: process.env.DB_CUSTOMER,
+        user: process.env.DB_USER,
         password: process.env.DB_PWD,
         database: process.env.DB_NAME,
     });
 
-    //Connecting to the datanase (Employee)
-    staff_db = sql.createPool({
-        host: process.env.DB_HOST,
-        user: process.env.DB_STAFF,
-        password: process.env.DB_PWD,
-        database: process.env.DB_NAME,
-    });
-
-    // USER 
     // Connect to the database and retrieve a connection from the connection pool
-    user_db.getConnection((err, connection)=>{
-    if (err) { // Check if there was an error retrieving the connection
-        console.error('Error getting connection from pool:', err); // Log the error to the console
-        return; // Exit the function
-    }
-    console.log('Connection retrieved from pool:', connection.threadId); // Log the thread ID of the connection retrieved
-    connection.release(); // Release the connection back to the pool
+    db.getConnection((err, connection) => {
+        if (err) {
+            console.error('Error getting connection from pool:', err);
+            return;
+        }
+        console.log('Connection retrieved from pool:', connection.threadId);
+        connection.release();
     });
 
     // Listen for a connection event from the database
-    if(user_db){
-    user_db.on('connection', (connection)=>{
-        console.log(`Connection established on connection ${connection} for user db`); // Log a message when a connection is established
-    });
-    }else{
-        console.log('Error'); // Log an error message if the connection could not be established
-    }
-
-
-    // Staff 
-    // Connect to the database and retrieve a connection from the connection pool
-    staff_db.getConnection((err, connection)=>{
-    if (err) { // Check if there was an error retrieving the connection
-        console.error('Error getting connection from pool:', err); // Log the error to the console
-        return; // Exit the function
-    }
-    console.log('Connection retrieved from pool:', connection.threadId); // Log the thread ID of the connection retrieved
-    connection.release(); // Release the connection back to the pool
-    });
-
-    // Listen for a connection event from the database
-    if(staff_db){
-    staff_db.on('connection', (connection)=>{
-        console.log(`Connection established on connection ${connection} for staff db`); // Log a message when a connection is established
-    });
-    }else{
-        console.log('Error'); // Log an error message if the connection could not be established
+    if (db) {
+        db.on('connection', (connection) => {
+            console.log(`Connection established on connection ${connection} for db`);
+        });
+    } else {
+        console.log('Error');
     }
 
 }else{
     // We're still in DEV phase, so we use SQLite
-    //Connecting to the database 
-    //Connecting to the database (User)
-    user_db = new sqlite3.Database(process.env.USER_DB_PATH || ':memory:');
+    // Connecting to the database
+    const sqlite_path = path.resolve(process.env.SQLITE_DB || './database.sqlite');
+    db = new sqlite3.Database(sqlite_path);
 
-    //Connecting to the database (Employee)
-    staff_db = new sqlite3.Database(process.env.STAFF_DB_PATH || ':memory:');
+    // Create tables for user and staff
+    db.serialize(() => {
+        db.run(`
+            CREATE TABLE IF NOT EXISTS user_record (
+                user_id INTEGER PRIMARY KEY,
+                firstname TEXT NOT NULL,
+                lastname TEXT NOT NULL,
+                address TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                user_username TEXT UNIQUE NOT NULL,
+                user_password TEXT NOT NULL,
+                membership_level TEXT NOT NULL
+            )
+        `);
 
-    // USER 
-    // Connect to the database and retrieve a connection from the connection pool
-    user_db.serialize(() => {
-        user_db.get('SELECT 1', (err, row) => {
-            if (err) {
-            console.error('Error getting connection:', err);
-            } else {
-            console.log('Connection retrieved for user db');
-            }
-        });
+        db.run(`
+            CREATE TABLE IF NOT EXISTS employee_record (
+                staff_id INTEGER PRIMARY KEY,
+                staff_username TEXT UNIQUE NOT NULL,
+                staff_password TEXT NOT NULL
+            )
+        `);
+
+        console.log('Tables created for user_record and employee_record');
     });
 
-    // Staff 
-    // Connect to the database and retrieve a connection from the connection pool
-    staff_db.serialize(() => {
-        staff_db.get('SELECT 1', (err, row) => {
+    // Connect to the database and retrieve a connection
+    db.serialize(() => {
+        db.get('SELECT 1', (err, row) => {
             if (err) {
-            console.error('Error getting connection:', err);
+                console.error('Error getting connection:', err);
             } else {
-            console.log('Connection retrieved for staff db');
+                console.log('Connection retrieved for db');
             }
         });
     });
 
 }
 
-module.exports = {user_db, staff_db}
+module.exports = {db}

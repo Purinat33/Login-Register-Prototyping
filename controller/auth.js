@@ -1,5 +1,5 @@
 const express = require('express')
-const {user_db, staff_db} = require('./../model/db')
+const {db} = require('./../model/db')
 
 function login_user(req,res,next){
     // If found in employee records, reroute the inputter to employee dashboard
@@ -12,4 +12,13 @@ function register_user(req, res,next){
     // Same deal with login
 }
 
-module.exports = {login_user, register_user}
+function check_staff_status(req,res,next){
+    // Check if staff is the one logged in
+
+}
+
+function isLoggedIn(req, res, next){
+    // Check if we're logged in (Cookie?)
+}
+
+module.exports = {login_user, register_user, check_staff_status, isLoggedIn}
