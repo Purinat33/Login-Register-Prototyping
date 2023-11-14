@@ -14,6 +14,7 @@ function login_user(req, res, next) {
         db.get(`SELECT * FROM ${tableName} WHERE ${tableName === 'user_record' ? 'user_username' : 'staff_username'} = ?`, [username], (err, row) => {
             if (err) {
                 console.error('Error during login:', err);
+                // return res.status(500).json({ message: 'Internal server error' });
                 return res.status(500).json({ message: 'Internal server error' });
             }
 
@@ -49,6 +50,40 @@ function login_user(req, res, next) {
 
 function register_user(req, res,next){
     // Same deal with login
+        const { firstname, lastname, address, phone, user_username, user_password } = req.body;
+
+    // Check if the username already exists in the user_record table
+    db.get('SELECT 1 FROM user_record WHERE user_username = ?', [user_username], (err, userRow) => {
+        if (err) {
+            console.error('Error checking if username exists in user_record:', err);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        if (!userRow) {
+            // Username does not exist in user_record, proceed to register
+            bcrypt.hash(user_password, 10, (hashErr, hashedPassword) => {
+                if (hashErr) {
+                    console.error('Error hashing password:', hashErr);
+                    return res.status(500).json({ message: 'Internal server error' });
+                }
+
+                // Insert the new user into the user_record table
+                db.run('INSERT INTO user_record (firstname, lastname, address, phone, user_username, user_password, membership_level) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [firstname, lastname, address, phone, user_username, hashedPassword, 'guest'], (insertErr) => {
+                        if (insertErr) {
+                            console.error('Error inserting user:', insertErr);
+                            return res.status(500).json({ message: 'Internal server error' });
+                        } else {
+                            console.log('User registered successfully.');
+                            return res.status(200).json({ message: 'Registration successful' });
+                        }
+                    });
+            });
+        } else {
+            // Username already exists in user_record
+            return res.status(400).json({ message: 'Username already exists' });
+        }
+    });
 }
 
 function check_staff_status(req,res,next){
