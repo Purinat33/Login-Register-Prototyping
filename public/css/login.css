@@ -97,3 +97,62 @@ input[type="submit"] {
     font-size: 1em;
     font-weight: 600;
 }
+
+/* Additional CSS for radio buttons */
+input[type="radio"] {
+    display: none;
+    /* Hide the default radio buttons */
+}
+
+/* Style for the custom radio button */
+input[type="radio"]+label {
+    position: relative;
+    padding-left: 30px;
+    /* Space for the custom radio button */
+    cursor: pointer;
+}
+
+/* Style for the custom radio button's indicator */
+input[type="radio"]+label::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    background-color: #fff;
+}
+
+/* Change the indicator when the radio button is checked */
+input[type="radio"]:checked+label::before {
+    background-color: #3498db;
+    /* Change to your desired color */
+    border-color: #3498db;
+    /* Change to your desired color */
+}
+
+/* Hide the radio button input visually but keep its functionality */
+input[type="radio"]+label::after {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #fff;
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    opacity: 0;
+    /* Hide the indicator by default */
+}
+
+/* Show the indicator when the radio button is checked */
+input[type="radio"]:checked+label::after {
+    opacity: 1;
+    background-color: #fff;
+    /* Change to your desired color */
+}

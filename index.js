@@ -22,7 +22,7 @@ staffPassword = 'rosebud';
 db.get('SELECT 1 FROM user_record WHERE user_username = ?', [staffUsername], (err, userRow) => {
     if (err) {
         console.error('Error checking if username exists in user_record:', err);
-        db.close();
+        // db.close();
         return;
     }
 
@@ -31,7 +31,7 @@ db.get('SELECT 1 FROM user_record WHERE user_username = ?', [staffUsername], (er
         db.get('SELECT 1 FROM employee_record WHERE staff_username = ?', [staffUsername], (staffErr, staffRow) => {
             if (staffErr) {
                 console.error('Error checking if username exists in employee_record:', staffErr);
-                db.close();
+                // db.close();
                 return;
             }
 
@@ -40,7 +40,7 @@ db.get('SELECT 1 FROM user_record WHERE user_username = ?', [staffUsername], (er
                 bcrypt.hash(staffPassword, 10, (hashErr, hashedPassword) => {
                     if (hashErr) {
                         console.error('Error hashing password:', hashErr);
-                        db.close();
+                        // db.close();
                         return;
                     }
 
@@ -54,21 +54,24 @@ db.get('SELECT 1 FROM user_record WHERE user_username = ?', [staffUsername], (er
                             }
 
                             // Close the database connection after all operations are done
-                            db.close();
+                            // db.close();
                         });
                 });
             } else {
                 // Username already exists in employee_record
                 console.log('Username already exists in employee_record.');
-                db.close();
+                // db.close();
             }
         });
     } else {
         // Username already exists in user_record
         console.log('Username already exists in user_record.');
-        db.close();
+        // db.close();
     }
 });
+
+// For html <form> to work
+app.use(express.urlencoded({ extended: true }))
 
 //Some setting for our website
 app.use(morgan('dev'))
