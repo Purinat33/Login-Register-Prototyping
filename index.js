@@ -87,7 +87,7 @@ const userPassword = 'gyoubu';
 const userFirstName = 'Gyoubu'; // Not required for login but required for registration
 const userLastName = 'Oniwa';
 const userAddress = 'Ashina Castle, Japan';
-const userPhone = '911';
+const userPhone = '+66123456789';
 const userMembershipLevel = 'guest';
 
 

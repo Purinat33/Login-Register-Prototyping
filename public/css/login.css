@@ -156,3 +156,66 @@ input[type="radio"]:checked+label::after {
     background-color: #fff;
     /* Change to your desired color */
 }
+
+/* Style for countryCode dropdown */
+.countryCode {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+/* Style for the select element */
+#countryCode {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 8px;
+    font-size: 16px;
+    background-color: #fff;
+    /* Adjust background color */
+    color: #333;
+    /* Adjust text color */
+}
+
+/* Style for the arrow icon */
+#countryCode::after {
+    content: '\25BC';
+    /* Unicode for down arrow */
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #aaa;
+    /* Adjust arrow color */
+}
+
+/* Modify the appearance of the select element */
+#countryCode::-ms-expand {
+    display: none;
+    /* Hide the default arrow in IE10+ */
+}
+
+/* Style for the dropdown options */
+#countryCode option {
+    background-color: #fff;
+    /* Adjust background color */
+    color: #333;
+    /* Adjust text color */
+}
+
+/* Adjust styles on focus and valid */
+#countryCode:focus,
+#countryCode:valid {
+    border-color: #3498db;
+    /* Adjust border color on focus/valid */
+    color: #3498db;
+    /* Adjust text color on focus/valid */
+}
+
+span[for="phone"].active {
+    top: -10px;
+    font-size: 12px;
+    color: #3498db;
+}

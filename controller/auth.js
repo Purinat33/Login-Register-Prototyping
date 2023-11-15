@@ -1,6 +1,5 @@
 const express = require('express')
 const {db} = require('./../model/db')
-
 const bcrypt = require('bcrypt');
 
 function login_user(req, res, next) {
@@ -62,11 +61,11 @@ function login_user(req, res, next) {
 }
 
 
-
-
 function register_user(req, res,next){
     // Same deal with login
-        const { firstname, lastname, address, phone, user_username, user_password } = req.body;
+    const { firstname, lastname, address, phone, user_username, user_password } = req.body;
+    const countryCode = req.body.countryCode;
+    const formattedPhone = `+${countryCode}${phone.replace(/-/g, '')}`;
 
     // Check if the username already exists in the user_record table
     db.get('SELECT 1 FROM user_record WHERE user_username = ?', [user_username], (err, userRow) => {
@@ -85,7 +84,7 @@ function register_user(req, res,next){
 
                 // Insert the new user into the user_record table
                 db.run('INSERT INTO user_record (firstname, lastname, address, phone, user_username, user_password, membership_level) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [firstname, lastname, address, phone, user_username, hashedPassword, 'guest'], (insertErr) => {
+                    [firstname, lastname, address, formattedPhone, user_username, hashedPassword, 'guest'], (insertErr) => {
                         if (insertErr) {
                             console.error('Error inserting user:', insertErr);
                             return res.status(500).redirect('/error?message=' + encodeURIComponent('Internal Server Error'));
